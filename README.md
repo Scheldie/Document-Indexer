@@ -138,3 +138,8 @@ cp notes/*.txt test_data/
       Поиск по слову back  
 ![Поиск по слову back](https://github.com/user-attachments/assets/9aa4b0f8-d56d-4642-8881-362bcd99f466)
 
+
+    Вызов команды help
+![Команда help](https://github.com/user-attachments/assets/0741304e-1d2a-4dd4-9d2b-d46b7f2340b3)
+
+
