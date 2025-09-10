@@ -9,17 +9,14 @@
 #include <chrono>
 
 
-// Для filesystem в C++14
 #include <boost/filesystem.hpp>
 
-// Для работы с PDF
 #include <poppler/cpp/poppler-document.h>
 #include <poppler/cpp/poppler-page.h>
 #include <poppler/cpp/poppler-global.h>
 #include <poppler/cpp/poppler-page-renderer.h>
 #include <iconv.h>
 
-// CLucene headers
 #include <CLucene.h>
 #include <CLucene/analysis/standard/StandardAnalyzer.h>
 #include <CLucene/analysis/AnalysisHeader.h>
@@ -52,7 +49,6 @@ using lucene::analysis::standard::StandardAnalyzer;
 #define UNICODE
 #define _UNICODE
 
-// Упрощенный конвертер для совместимости с CLucene
 const TCHAR* toTCHAR(const std::string& str) {
 #ifdef _UNICODE
     static thread_local std::wstring wideStr;
@@ -134,8 +130,6 @@ std::vector<std::pair<int, std::string>> extractTextWithPagesFromFile(const fs::
             }
 
 
-
-            // Вывод метаданных
             std::cout << "PDF Metadata:" << std::endl;
 
             std::cout << "  Pages: " << doc->pages() << std::endl;
@@ -155,8 +149,7 @@ std::vector<std::pair<int, std::string>> extractTextWithPagesFromFile(const fs::
                         std::cerr << "  WARNING: Empty text on page " << i << std::endl;
                         continue;
                     }
-
-                    // Вариант 1: UTF-8
+                    
                     try {
                         auto utf8 = ustr.to_utf8();
                         std::string content(utf8.begin(), utf8.end());
@@ -167,7 +160,6 @@ std::vector<std::pair<int, std::string>> extractTextWithPagesFromFile(const fs::
                         }
                     } catch (...) {}
 
-                    // Вариант 2: Latin1 как fallback
                     try {
                         auto latin = ustr.to_latin1();
                         std::string content(latin.begin(), latin.end());
@@ -193,7 +185,6 @@ std::vector<std::pair<int, std::string>> extractTextWithPagesFromFile(const fs::
     return pagesContent;
 }
 
-// Индексация файлов
 void indexFiles(const fs::path& directoryPath, const fs::path& indexDir) {
     try {
         std::string indexDirStr = indexDir.string();
@@ -212,7 +203,6 @@ void indexFiles(const fs::path& directoryPath, const fs::path& indexDir) {
                     if (!content.empty()) {
                         lucene::document::Document doc;
 
-                        // Путь к файлу - сохраняем как есть
                         std::string pathStr = filePath.string();
                         doc.add(*_CLNEW lucene::document::Field(
                             _T("path"),
@@ -220,15 +210,13 @@ void indexFiles(const fs::path& directoryPath, const fs::path& indexDir) {
                             lucene::document::Field::STORE_YES |
                             lucene::document::Field::INDEX_UNTOKENIZED));
 
-                        // Номер страницы
                         std::string pageStr = std::to_string(pageNum);
                         doc.add(*_CLNEW lucene::document::Field(
                             _T("page"),
                             toTCHAR(pageStr),
                             lucene::document::Field::STORE_YES |
                             lucene::document::Field::INDEX_UNTOKENIZED));
-
-                        // Содержимое для поиска
+                        
                         doc.add(*_CLNEW lucene::document::Field(
                             _T("content"),
                             toTCHAR(content),
@@ -253,8 +241,6 @@ void indexFiles(const fs::path& directoryPath, const fs::path& indexDir) {
     }
 }
 
-
-// Поиск по индексу с выводом информации о странице и строке
 void searchIndex(const fs::path& indexDir, const std::string& queryStr) {
     try {
         if (!fs::exists(indexDir) || fs::is_empty(indexDir)) {
@@ -277,7 +263,6 @@ void searchIndex(const fs::path& indexDir, const std::string& queryStr) {
         for (size_t i = 0; i < hits->length(); ++i) {
             Document& doc = hits->doc(i);
 
-            // Получаем значения полей напрямую
             const TCHAR* path = doc.get(toTCHAR("path"));
             const TCHAR* page = doc.get(toTCHAR("page"));
 
@@ -313,7 +298,7 @@ int main() {
 
 
     std::string command;
-    fs::path dataDir = "test_data";  // Изменено на test_data
+    fs::path dataDir = "test_data";
     fs::path indexDir = "index";
 
     std::cout << "Text Indexer (with PDF support)" << std::endl;
@@ -355,3 +340,4 @@ int main() {
 
     return 0;
 }
+
